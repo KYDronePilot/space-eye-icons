@@ -1,0 +1,24 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 13
+
+      - name: Install dependencies
+        run: brew install inkscape
+
+      - name: Install NPM packages
+        run: npm ci
+
+      - name: Build icons
+        run: gulp build
