@@ -21,4 +21,4 @@ jobs:
         run: npm ci
 
       - name: Build icons
-        run: gulp build
+        run: npx gulp build
