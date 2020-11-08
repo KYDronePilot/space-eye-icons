@@ -15,7 +15,7 @@ jobs:
           node-version: 13
 
       - name: Install dependencies
-        run: brew install inkscape
+        run: brew install inkscape imagemagick
 
       - name: Install NPM packages
         run: npm ci
