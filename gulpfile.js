@@ -92,6 +92,12 @@ async function buildMacAppIcns() {
   await svgToMacIcns("src/app.svg", "dist/mac_app.icns");
 }
 
+async function buildInfoIcon() {
+  await asyncExec(
+    "inkscape -w 256 -h 256 src/app.svg --export-filename dist/info_app.png"
+  );
+}
+
 exports.build = series(
   clean,
   parallel(
@@ -99,6 +105,7 @@ exports.build = series(
     buildRetinaToolbarIcon,
     buildWindowToolbarIco,
     buildWindowAppIco,
-    buildMacAppIcns
+    buildMacAppIcns,
+    buildInfoIcon
   )
 );
