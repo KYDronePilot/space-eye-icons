@@ -1,6 +1,8 @@
 name: Build
 
-on: [push]
+on:
+  create:
+    tags: [v*]
 
 jobs:
   build:
@@ -13,6 +15,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 13
+          registry-url: https://npm.pkg.github.com
+          scope: "@kydronepilot"
 
       - name: Install dependencies
         run: brew install inkscape imagemagick
@@ -22,3 +26,8 @@ jobs:
 
       - name: Build icons
         run: npx gulp build
+
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
