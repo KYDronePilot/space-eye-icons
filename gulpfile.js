@@ -9,13 +9,13 @@ const asyncCopyFile = promisify(fs.copyFile);
 
 async function buildStandardToolbarIcon() {
   await asyncExec(
-    "inkscape -w 20 -h 20 src/toolbar_icon.svg --export-filename dist/IconTemplate.png"
+    "inkscape -w 20 -h 20 src/toolbar.svg --export-filename dist/mac_toolbar.png"
   );
 }
 
 async function buildRetinaToolbarIcon() {
   await asyncExec(
-    "inkscape -w 40 -h 40 src/toolbar_icon.svg --export-filename dist/IconTemplate@2x.png"
+    "inkscape -w 40 -h 40 src/toolbar.svg --export-filename dist/mac_toolbar@2x.png"
   );
 }
 
@@ -81,11 +81,11 @@ async function svgToMacIcns(src, dest) {
 }
 
 async function buildWindowToolbarIco() {
-  await svgToWindowsIco("src/toolbar_icon.svg", "dist/toolbar.ico");
+  await svgToWindowsIco("src/toolbar.svg", "dist/windows_toolbar.ico");
 }
 
 async function buildWindowAppIco() {
-  await svgToWindowsIco("src/app.svg", "dist/app.ico");
+  await svgToWindowsIco("src/app.svg", "dist/windows_app.ico");
 }
 
 async function buildMacAppIcns() {
