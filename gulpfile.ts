@@ -7,6 +7,12 @@ const path = require('path')
 const asyncExec = promisify(exec)
 const asyncCopyFile = promisify(fs.copyFile)
 
+const SRC = path.join(__dirname, 'src')
+const APP_SVG = path.join(SRC, 'app.svg')
+const TOOLBAR_SVG = path.join(SRC, 'toolbar.svg')
+const DIST = path.join(__dirname, 'dist')
+const APPX = path.join(DIST, 'appx')
+
 async function buildStandardToolbarIcon() {
     await asyncExec('inkscape -w 20 -h 20 src/toolbar.svg --export-filename dist/mac_toolbar.png')
 }
@@ -85,6 +91,93 @@ async function buildInfoIcon() {
     await asyncExec('inkscape -w 256 -h 256 src/app.svg --export-filename dist/info_app.png')
 }
 
+async function buildSvgToPng(width: number, height: number, svgPath: string, outputPath: string) {
+    await asyncExec(`inkscape -w ${width} -h ${height} ${svgPath} --export-filename ${outputPath}`)
+}
+
+/**
+ * Add padding to a PNG.
+ * @param paddingX
+ * @param paddingY
+ */
+async function padPng(paddingX: number, paddingY: number, filePath: string) {
+    await asyncExec(
+        `magick mogrify -bordercolor transparent -border ${paddingX}x${paddingY} -format png ${filePath}`
+    )
+}
+
+async function buildSvg(
+    width: number,
+    height: number,
+    name: string,
+    svgPath: string,
+    outputPath: string
+): Promise<string> {
+    const filePath = path.join(outputPath, `${name}.png`)
+    const minDimension = Math.min(width, height)
+    await buildSvgToPng(minDimension, minDimension, svgPath, filePath)
+    if (width !== height) {
+        await padPng((width - minDimension) / 2, (height - minDimension) / 2, filePath)
+    }
+    return filePath
+}
+
+async function buildSvgWithPadding(
+    width: number,
+    height: number,
+    name: string,
+    svgPath: string,
+    outputPath: string,
+    paddingX: number = 0,
+    paddingY: number = 0
+): Promise<string> {
+    const filePath = await buildSvg(width, height, name, svgPath, outputPath)
+    if (paddingX !== 0 || paddingY !== 0) {
+        await padPng(paddingX, paddingY, filePath)
+    }
+    return filePath
+}
+
+const scales = [1, 2, 4]
+
+async function buildScaledUwpIcons(
+    width: number,
+    height: number,
+    name: string,
+    svgPath: string,
+    outputPath: string,
+    paddingX: number = 0,
+    paddingY: number = 0
+) {
+    await Promise.all(
+        scales.map((scale) =>
+            buildSvgWithPadding(
+                width * scale,
+                height * scale,
+                `${name}.scale-${scale * 100}`,
+                svgPath,
+                outputPath,
+                paddingX * scale,
+                paddingY * scale
+            )
+        )
+    )
+}
+
+async function buildUwpIcons() {
+    return Promise.all([
+        buildScaledUwpIcons(44, 44, 'Square44x44Logo', APP_SVG, APPX),
+        buildSvgWithPadding(50, 50, 'StoreLogo', APP_SVG, APPX),
+        buildScaledUwpIcons(50, 50, 'StoreLogo', APP_SVG, APPX),
+        buildScaledUwpIcons(71, 71, 'SmallTile', APP_SVG, APPX),
+        buildScaledUwpIcons(150, 150, 'MedTile', APP_SVG, APPX),
+        buildScaledUwpIcons(150, 150, 'Square150x150Logo', APP_SVG, APPX),
+        buildScaledUwpIcons(310, 150, 'Wide310x150Logo', APP_SVG, APPX),
+        buildScaledUwpIcons(310, 310, 'LargeTile', APP_SVG, APPX),
+        buildScaledUwpIcons(620, 300, 'SplashScreen', APP_SVG, APPX),
+    ])
+}
+
 exports.build = series(
     clean,
     parallel(
@@ -93,6 +186,7 @@ exports.build = series(
         buildWindowToolbarIco,
         buildWindowAppIco,
         buildMacAppIcns,
-        buildInfoIcon
+        buildInfoIcon,
+        buildUwpIcons
     )
 )
