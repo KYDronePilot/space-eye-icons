@@ -35,7 +35,14 @@ async function clean() {
 }
 
 async function svgToPng(width: number, height: number, src: string, dest: string) {
-    await asyncExec(`inkscape -w ${width} -h ${height} ${src} --export-filename ${dest}`)
+    const totalPadding = Math.round((33 * height) / 256)
+    const paddingAmount = totalPadding / 2
+    await asyncExec(
+        `inkscape -w ${width - totalPadding} -h ${
+            height - totalPadding
+        } ${src} --export-filename ${dest}`
+    )
+    await padPng(paddingAmount, paddingAmount, dest)
 }
 
 async function svgToWindowsIco(src: string, dest: string) {
@@ -166,15 +173,13 @@ async function buildScaledUwpIcons(
 
 async function buildUwpIcons() {
     return Promise.all([
-        buildScaledUwpIcons(44, 44, 'Square44x44Logo', APP_SVG, APPX),
-        buildSvgWithPadding(50, 50, 'StoreLogo', APP_SVG, APPX),
-        buildScaledUwpIcons(50, 50, 'StoreLogo', APP_SVG, APPX),
-        buildScaledUwpIcons(71, 71, 'SmallTile', APP_SVG, APPX),
-        buildScaledUwpIcons(150, 150, 'MedTile', APP_SVG, APPX),
-        buildScaledUwpIcons(150, 150, 'Square150x150Logo', APP_SVG, APPX),
-        buildScaledUwpIcons(310, 150, 'Wide310x150Logo', APP_SVG, APPX),
-        buildScaledUwpIcons(310, 310, 'LargeTile', APP_SVG, APPX),
-        buildScaledUwpIcons(620, 300, 'SplashScreen', APP_SVG, APPX),
+        buildSvgWithPadding(512, 512, 'BadgeLogo', APP_SVG, APPX),
+        buildSvgWithPadding(310, 310, 'LargeTile', APP_SVG, APPX),
+        buildSvgWithPadding(71, 71, 'SmallTile', APP_SVG, APPX),
+        buildSvgWithPadding(44, 44, 'Square44x44Logo', APP_SVG, APPX),
+        buildSvgWithPadding(150, 150, 'Square150x150Logo', APP_SVG, APPX),
+        buildSvgWithPadding(64, 64, 'StoreLogo', APP_SVG, APPX),
+        buildSvgWithPadding(310, 150, 'Wide310x150Logo', APP_SVG, APPX),
     ])
 }
 
