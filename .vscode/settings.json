@@ -3,5 +3,17 @@
     "editor.formatOnSave": true,
     "[xml]": {
         "editor.formatOnSave": false
-    }
+    },
+    "cSpell.words": [
+        "APPX",
+        "Icns",
+        "PNGs",
+        "SVGs",
+        "bordercolor",
+        "iconset",
+        "iconutil",
+        "inkscape",
+        "magick",
+        "mogrify"
+    ]
 }
