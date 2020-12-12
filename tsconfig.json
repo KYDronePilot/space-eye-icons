@@ -72,5 +72,10 @@
         "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
         "resolveJsonModule": true
     },
-    "include": ["./gulpfile.ts"]
+    "include": ["./gulpfile.ts"],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs"
+        }
+    }
 }

@@ -1,8 +1,8 @@
-const { exec } = require('child_process')
-const { promisify } = require('util')
-const { parallel, series } = require('gulp')
-const fs = require('fs')
-const path = require('path')
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import { parallel, series } from 'gulp'
+import fs from 'fs'
+import path from 'path'
 
 const asyncExec = promisify(exec)
 const asyncCopyFile = promisify(fs.copyFile)
@@ -183,7 +183,7 @@ async function buildUwpIcons() {
     ])
 }
 
-exports.build = series(
+export const build = series(
     clean,
     parallel(
         buildStandardToolbarIcon,
