@@ -48,13 +48,30 @@ async function padPng(paddingX: number, paddingY: number, pngPath: string) {
  * @param svgPath - Path to the SVG
  * @param pngPath - Path to the PNG
  */
-async function buildSvgToPng(width: number, height: number, svgPath: string, pngPath: string) {
+async function buildSvgToPng(
+    width: number,
+    height: number,
+    svgPath: string,
+    pngPath: string,
+    preScalingFactor: number = 1,
+    blurSigma: number | undefined = undefined
+) {
     // Build to PNG square of minDimension x minDimension
     const minDimension = Math.min(width, height)
-    const minDimensionStr = minDimension.toString()
+    // Scale for initial dimensions (if using blurring)
+    const preScaledDimensions = minDimension * preScalingFactor
+    const initialDimensions = preScaledDimensions.toString()
     await asyncExec(
-        `inkscape -w ${minDimensionStr} -h ${minDimensionStr} "${svgPath}" --export-filename "${pngPath}"`
+        `inkscape -w ${initialDimensions} -h ${initialDimensions} "${svgPath}" --export-filename "${pngPath}"`
     )
+    if (blurSigma !== undefined) {
+        // Blur the image
+        await asyncExec(`magick mogrify -blur 0x${blurSigma.toFixed(1)} ${pngPath}`)
+        // Resize down if scaling done
+        if (minDimension !== preScaledDimensions) {
+            await asyncExec(`magick mogrify -resize ${minDimension}x${minDimension} ${pngPath}`)
+        }
+    }
     // If not the same dimensions, add padding to take up the space
     if (width !== height) {
         await padPng(
@@ -77,11 +94,20 @@ async function buildPngWithMacIconPadding(
     width: number,
     height: number,
     svgPath: string,
-    pngPath: string
+    pngPath: string,
+    preScalingFactor: number = 1,
+    blurSigma: number | undefined = undefined
 ) {
     const totalPadding = Math.round((33 * height) / 256)
     const paddingAmount = totalPadding / 2
-    await buildSvgToPng(width - totalPadding, height - totalPadding, svgPath, pngPath)
+    await buildSvgToPng(
+        width - totalPadding,
+        height - totalPadding,
+        svgPath,
+        pngPath,
+        preScalingFactor,
+        blurSigma
+    )
     await padPng(paddingAmount, paddingAmount, pngPath)
 }
 
@@ -90,8 +116,8 @@ async function buildPngWithMacIconPadding(
  */
 async function buildMacToolbarIcons() {
     await Promise.all([
-        buildSvgToPng(20, 20, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar.png')),
-        buildSvgToPng(40, 40, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar@2x.png')),
+        buildSvgToPng(20, 20, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar.png'), 16, 8),
+        buildSvgToPng(40, 40, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar@2x.png'), 8, 6),
     ])
 }
 
@@ -106,17 +132,35 @@ async function buildSvgToWindowsIco(svgPath: string, icoPath: string) {
     const name = path.parse(icoPath).name
     const buildAssets = path.join(BUILD, name)
     fse.ensureDir(buildAssets)
-    const sizes = [16, 24, 32, 48, 64, 72, 96, 128, 180, 256]
+    const sizes: [number, number, number | undefined][] = [
+        [16, 16, 6],
+        [24, 16, 5],
+        [32, 10, 4],
+        [48, 8, 2],
+        [64, 5, 2],
+        [72, 1, undefined],
+        [96, 1, undefined],
+        [128, 1, undefined],
+        [180, 1, undefined],
+        [256, 1, undefined],
+    ]
     // Build each size to a PNG
     await Promise.all(
-        sizes.map((size) =>
-            buildPngWithMacIconPadding(size, size, svgPath, path.join(buildAssets, `${size}.png`))
+        sizes.map(([size, initialScale, blurSigma]) =>
+            buildPngWithMacIconPadding(
+                size,
+                size,
+                svgPath,
+                path.join(buildAssets, `${size}.png`),
+                initialScale,
+                blurSigma
+            )
         )
     )
     // Convert to ICO
     await asyncExec(
         `convert ${sizes
-            .map((size) => '"' + path.join(buildAssets, `${size}.png`) + '"')
+            .map(([size, _, __]) => '"' + path.join(buildAssets, `${size}.png`) + '"')
             .join(' ')} "${icoPath}"`
     )
 }
@@ -132,7 +176,15 @@ async function svgToMacIcns(svgPath: string, icnsPath: string) {
     const name = path.parse(icnsPath).name
     const buildAssets = path.join(BUILD, name)
     fse.ensureDir(buildAssets)
-    const sizes = [16, 32, 64, 128, 256, 512, 1024]
+    const sizes: [number, number, number | undefined][] = [
+        [16, 16, 6],
+        [32, 10, 4],
+        [64, 5, 2],
+        [128, 1, undefined],
+        [256, 1, undefined],
+        [512, 1, undefined],
+        [1024, 1, undefined],
+    ]
     // Names for each size
     const sizeNames: { [key: number]: string[] } = {
         16: ['16x16'],
@@ -148,13 +200,20 @@ async function svgToMacIcns(svgPath: string, icnsPath: string) {
     fse.ensureDir(iconsetDir)
     // Build initial PNGs
     await Promise.all(
-        sizes.map((size) =>
-            buildPngWithMacIconPadding(size, size, svgPath, path.join(buildAssets, `${size}.png`))
+        sizes.map(([size, initialScale, blurSigma]) =>
+            buildPngWithMacIconPadding(
+                size,
+                size,
+                svgPath,
+                path.join(buildAssets, `${size}.png`),
+                initialScale,
+                blurSigma
+            )
         )
     )
     // Copy to proper file names
     await Promise.all(
-        sizes.map(async (size) =>
+        sizes.map(async ([size, _, __]) =>
             Promise.all(
                 sizeNames[size].map(async (sizeName) =>
                     asyncCopyFile(
@@ -204,10 +263,10 @@ async function buildUwpIcons() {
     return Promise.all([
         buildSvgToPng(512, 512, APP_SVG, path.join(APPX, 'BadgeLogo.png')),
         buildSvgToPng(310, 310, APP_SVG, path.join(APPX, 'LargeTile.png')),
-        buildSvgToPng(71, 71, APP_SVG, path.join(APPX, 'SmallTile.png')),
-        buildSvgToPng(44, 44, APP_SVG, path.join(APPX, 'Square44x44Logo.png')),
+        buildSvgToPng(71, 71, APP_SVG, path.join(APPX, 'SmallTile.png'), 4, 2),
+        buildSvgToPng(44, 44, APP_SVG, path.join(APPX, 'Square44x44Logo.png'), 8, 6),
         buildSvgToPng(150, 150, APP_SVG, path.join(APPX, 'Square150x150Logo.png')),
-        buildSvgToPng(64, 64, APP_SVG, path.join(APPX, 'StoreLogo.png')),
+        buildSvgToPng(64, 64, APP_SVG, path.join(APPX, 'StoreLogo.png'), 6, 4),
         buildSvgToPng(310, 150, APP_SVG, path.join(APPX, 'Wide310x150Logo.png')),
     ])
 }
