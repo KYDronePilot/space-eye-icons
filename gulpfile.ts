@@ -147,7 +147,7 @@ async function buildSvgToWindowsIco(svgPath: string, icoPath: string) {
     // Build each size to a PNG
     await Promise.all(
         sizes.map(([size, initialScale, blurSigma]) =>
-            buildPngWithMacIconPadding(
+            buildSvgToPng(
                 size,
                 size,
                 svgPath,
@@ -264,7 +264,7 @@ async function buildUwpIcons() {
         buildSvgToPng(512, 512, APP_SVG, path.join(APPX, 'BadgeLogo.png')),
         buildSvgToPng(310, 310, APP_SVG, path.join(APPX, 'LargeTile.png')),
         buildSvgToPng(71, 71, APP_SVG, path.join(APPX, 'SmallTile.png'), 4, 2),
-        buildSvgToPng(44, 44, APP_SVG, path.join(APPX, 'Square44x44Logo.png'), 8, 6),
+        buildSvgToPng(44, 44, APP_SVG, path.join(APPX, 'Square44x44Logo.png'), 8, 4),
         buildSvgToPng(150, 150, APP_SVG, path.join(APPX, 'Square150x150Logo.png')),
         buildSvgToPng(64, 64, APP_SVG, path.join(APPX, 'StoreLogo.png'), 6, 4),
         buildSvgToPng(310, 150, APP_SVG, path.join(APPX, 'Wide310x150Logo.png')),
