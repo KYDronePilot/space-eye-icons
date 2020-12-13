@@ -1,6 +1,6 @@
 {
   "name": "@kydronepilot/space-eye-icons",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Icons for the SpaceEye application",
   "main": "index.js",
   "scripts": {
