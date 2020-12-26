@@ -1,9 +1,5 @@
 {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "[xml]": {
-        "editor.formatOnSave": false
-    },
     "cSpell.words": [
         "APPX",
         "Icns",
@@ -15,5 +11,8 @@
         "inkscape",
         "magick",
         "mogrify"
-    ]
+    ],
+    "[typescript]": {
+        "editor.formatOnSave": true
+    }
 }

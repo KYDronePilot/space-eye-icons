@@ -22,8 +22,8 @@
         "url": "https://github.com/KYDronePilot/space-eye-icons/issues"
     },
     "keywords": [
-      "icons",
-      "spaceeye"
+        "icons",
+        "spaceeye"
     ],
     "homepage": "https://github.com/KYDronePilot/space-eye-icons",
     "devDependencies": {
