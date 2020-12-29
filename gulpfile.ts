@@ -116,8 +116,8 @@ async function buildPngWithMacIconPadding(
  */
 async function buildMacToolbarIcons() {
     await Promise.all([
-        buildSvgToPng(20, 20, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar.png'), 16, 8),
-        buildSvgToPng(40, 40, TOOLBAR_SVG, path.join(DIST, 'mac_toolbar@2x.png'), 8, 6),
+        buildSvgToPng(20, 20, TOOLBAR_SVG, path.join(DIST, 'MacToolbarTemplate.png'), 16, 8),
+        buildSvgToPng(40, 40, TOOLBAR_SVG, path.join(DIST, 'MacToolbarTemplate@2x.png'), 8, 6),
     ])
 }
 

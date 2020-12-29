@@ -1,6 +1,6 @@
 {
     "name": "space-eye-icons",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Icons for the SpaceEye application",
     "main": "index.js",
     "scripts": {
