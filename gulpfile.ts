@@ -54,7 +54,8 @@ async function buildSvgToPng(
     svgPath: string,
     pngPath: string,
     preScalingFactor: number = 1,
-    blurSigma: number | undefined = undefined
+    blurSigma: number | undefined = undefined,
+    invert: boolean = false
 ) {
     // Build to PNG square of minDimension x minDimension
     const minDimension = Math.min(width, height)
@@ -64,6 +65,10 @@ async function buildSvgToPng(
     await asyncExec(
         `inkscape -w ${initialDimensions} -h ${initialDimensions} "${svgPath}" --export-filename "${pngPath}"`
     )
+    // Invert color if necessary
+    if (invert) {
+        await asyncExec(`magick mogrify -channel RGB -negate ${pngPath}`)
+    }
     if (blurSigma !== undefined) {
         // Blur the image
         await asyncExec(`magick mogrify -blur 0x${blurSigma.toFixed(1)} ${pngPath}`)
@@ -127,7 +132,7 @@ async function buildMacToolbarIcons() {
  * @param svgPath - Path to SVG
  * @param icoPath - Path to ICO file
  */
-async function buildSvgToWindowsIco(svgPath: string, icoPath: string) {
+async function buildSvgToWindowsIco(svgPath: string, icoPath: string, invert: boolean = false) {
     // Create a dir to save the initial PNG files in
     const name = path.parse(icoPath).name
     const buildAssets = path.join(BUILD, name)
@@ -153,7 +158,8 @@ async function buildSvgToWindowsIco(svgPath: string, icoPath: string) {
                 svgPath,
                 path.join(buildAssets, `${size}.png`),
                 initialScale,
-                blurSigma
+                blurSigma,
+                invert
             )
         )
     )
@@ -236,6 +242,13 @@ async function buildWindowsToolbarIco() {
 }
 
 /**
+ * Build light toolbar ICO for Windows.
+ */
+async function buildWindowsLightToolbarIco() {
+    await buildSvgToWindowsIco(TOOLBAR_SVG, path.join(DIST, 'windows_toolbar_light.ico'), true)
+}
+
+/**
  * Build app ICO for Windows.
  */
 async function buildWindowsAppIco() {
@@ -276,6 +289,7 @@ export const build = series(
     parallel(
         buildMacToolbarIcons,
         buildWindowsToolbarIco,
+        buildWindowsLightToolbarIco,
         buildWindowsAppIco,
         buildMacAppIcns,
         buildInfoIcon,
